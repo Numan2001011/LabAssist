@@ -63,9 +63,13 @@ const Home = () => {
                 </a>
               </li>
               <li className="nav-menu-item">
-                
-                  <Link to="/Registration" id="home-login-btn" className="nav-menu-link text-decoration-none text-white">Sign up/Login</Link>
-                
+                <Link
+                  to="/Registration"
+                  id="home-login-btn"
+                  className="nav-menu-link text-decoration-none text-white"
+                >
+                  Sign up/Login
+                </Link>
               </li>
             </ul>
           </div>
@@ -95,10 +99,18 @@ const Home = () => {
               </p>
               <div className="wrapper-btn">
                 {/* <button className="mybtn get-started-btn"></button> */}
-                <Link to="/Login" className="mybtn get-started-btn text-decoration-none text-white">Get Started</Link>
-                <button className="mybtn documentation-btn">
+                <Link
+                  to="/Login"
+                  className="mybtn get-started-btn text-decoration-none text-white"
+                >
+                  Get Started
+                </Link>
+                <Link
+                  to="/documentation"
+                  className="mybtn get-started-btn text-decoration-none documentation-btn"
+                >
                   documentation
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -169,15 +181,16 @@ const Home = () => {
               <div className="grid-icon">
                 <i
                   className="fa fa-address-card"
-                  style={{ fontSize: "48px", color: "rgb(255, 0, 0)" }}
+                  style={{ fontSize: "48px", color: "rgb(0, 75, 161)" }}
                 ></i>
               </div>
               <div className="featured-info">
-                <span>Features 4</span>
+                <span>Interactive Web Service</span>
                 <p>
-                  Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-                  Numquam labore in doloribus, obcaecati dolor vitae tempora
-                  odio, consectetur!
+                  MERN stack based application meets the user experience in a
+                  smarter, more efficient manner. Enjoy lab environment with our
+                  LabAssist developed to meet the unique needs of laboratory
+                  management.
                 </p>
               </div>
             </div>

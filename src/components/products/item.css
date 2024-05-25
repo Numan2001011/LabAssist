@@ -1,0 +1,52 @@
+/* App.css */
+.app {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .left-partition,
+  .right-partition {
+    width: 45%;
+  }
+  
+  /* ItemList.css */
+  .item-list {
+    border: 1px solid #ccc;
+    padding: 10px;
+  }
+  
+  .item {
+    margin-bottom: 10px;
+  }
+  
+  /* Item.css */
+  .item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* SelectedItemList.css */
+  .selected-item-list {
+    border: 1px solid #ccc;
+    padding: 10px;
+  }
+  
+  .selected-item-list table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .selected-item-list th,
+  .selected-item-list td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .selected-item-list th {
+    background-color: #f2f2f2;
+  }
+  

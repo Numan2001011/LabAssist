@@ -4,7 +4,7 @@ import { z } from "zod";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useState } from "react";
 import { BiHide, BiShow } from "react-icons/bi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 
 const stringValidationRules = {
@@ -89,8 +89,8 @@ const Registration = () => {
   const {
     register: otpRegister,
     handleSubmit: otpHandleSubmit,
-    formState: { errors: otpErrors },
-  } = useForm<otpData>({ resolver: zodResolver(otpSchema) });
+    formState: { errors: otpErrors, isValid: isOtpValid },
+  } = useForm<otpData>({ resolver: zodResolver(otpSchema), mode: "onChange" });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConPassword, setConShowPassword] = useState<boolean>(false);
@@ -106,45 +106,71 @@ const Registration = () => {
   const [signup, setSignup] = useState(false);
 
   //Registration form data collected here
-  const [regdata, setRegData] = useState<FieldValues | null>(null);
+  const [regdata, setRegData] = useState<FieldValues>();
 
-  const onRegSubmit = (data: FieldValues) => {
+  const onRegSubmit = async (data: FieldValues) => {
     setRegData(data);
-    setSignup(true);
+
+    const regidata = data;
+    console.log("Data from reg: ", regidata);
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/signup/saveusers",
+        regidata
+      );
+
+      if (response.status == 200) {
+        setSignup(true);
+      } else {
+        console.log("User Registration failed.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } // Log the response if needed
   };
 
   //Otp collected here
-  //verify button cliked
-  const [onOtp, setOnOtp] = useState(false);
-  const [otpdata, setOtpData] = useState({
-    otp: "",
-  });
+  //verify email button cliked
+  const [showOtp, setShowOtp] = useState(false);
 
-  const onOtpSubmit = () => {
-    console.log("Otp After form submit: ", otpdata);
-  };
-  const [emailbtn, setEmailbtn] = useState(false);
+  //Otp verify button clicked
+  const [onOtp, setOnOtp] = useState(false);
+
+  const navigate = useNavigate();
+
   const sendOtp = async () => {
-    setEmailbtn(true);
     console.log("Reg Data: ", regdata); //send regdata for email
     if (regdata != null) {
-      await axios
-        .post("http://localhost:5000/signup/sendotp", regdata)
-        .catch((error) => alert(error));
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/signup/sendotp",
+          regdata
+        );
+        if (response.status == 200) {
+          setShowOtp(true);
+        }
+      } catch (error) {
+        console.log("Cannot go to OTP page error: ", error);
+      }
     } else {
       alert("Regdata is null");
     }
   };
 
   const [message, setMessage] = useState("");
-  const verifyEmail = async () => {
+  const onOtpSubmit = async (data: FieldValues) => {
+    const otpdata = data;
     const fulldata = { ...regdata, ...otpdata };
     console.log("OTP in frontend: ", { ...regdata, ...otpdata });
 
     if (otpdata != null) {
       try {
         await axios.post("http://localhost:5000/users/register", fulldata);
+
         setOnOtp(true);
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       } catch (error) {
         if ((error as AxiosError).response?.status === 400) {
           setMessage("OTP did not match");
@@ -155,6 +181,12 @@ const Registration = () => {
     } else {
       alert("Otp Api failed");
     }
+  };
+
+  const [selectedOption, setSelectedOption] = useState("");
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedOption(e.target.value);
   };
   return (
     <>
@@ -175,11 +207,7 @@ const Registration = () => {
                       Create an account
                     </h2>
 
-                    <form
-                      method="POST"
-                      action="/api/users/register"
-                      onSubmit={handleSubmit(onRegSubmit)}
-                    >
+                    <form onSubmit={handleSubmit(onRegSubmit)}>
                       <div className="mb-2 d-flex flex-row justify-content-center  ">
                         <div className="col-md-3  col-sm-3 ">
                           <label
@@ -195,11 +223,13 @@ const Registration = () => {
                             className="form-select border border-info"
                             id="utype"
                             {...register("usertype")}
+                            onChange={handleSelectChange}
                             data-mdb-select-init
                             disabled={signup}
+                            defaultValue="Student"
                           >
                             <option value=""></option>
-                            <option>Student</option>
+                            <option value="Student">Student</option>
                             <option value="Teacher">Teacher</option>
                             <option value="Instructor">Instructor</option>
                           </select>
@@ -239,39 +269,46 @@ const Registration = () => {
                             Dept:
                           </label>
 
-                          <select 
+                          <select
                             className="form-select form-select-md border border-info"
                             id="dept"
                             {...register("dept")}
                             data-mdb-select-init
                             disabled={signup}
+                            defaultValue="IRE"
                           >
-                            <option value=""></option>
                             <option value="IRE">IRE</option>
                             <option value="EdTech">EdTech</option>
                           </select>
                         </div>
 
                         <div className="col-md-6 col-sm-6">
-                          <label className="form-label fw-bold" htmlFor="session">
-                            Session:
-                          </label>
-
-                          <select
-                            id="session"
-                            className="form-select form-select-md border border-info"
-                            {...register("session")}
-                            data-mdb-select-init
-                            disabled={signup}
-                          >
-                            <option value=""></option>
-                            <option value="2018-19">2018-19</option>
-                            <option value="2019-20">2019-20</option>
-                            <option value="2020-21">2020-21</option>
-                            <option value="2021-22">2021-22</option>
-                            <option value="2022-23">2022-23</option>
-                            <option value="2023-24">2023-24</option>
-                          </select>
+                          {selectedOption != "Teacher" &&
+                            selectedOption != "Instructor" && (
+                              <>
+                                <label
+                                  className="form-label fw-bold"
+                                  htmlFor="session"
+                                >
+                                  Session:
+                                </label>
+                                <select
+                                  id="session"
+                                  className="form-select form-select-md border border-info"
+                                  {...register("session")}
+                                  data-mdb-select-init
+                                  disabled={signup}
+                                  defaultValue="2020-21"
+                                >
+                                  <option value="2018-19">2018-19</option>
+                                  <option value="2019-20">2019-20</option>
+                                  <option value="2020-21">2020-21</option>
+                                  <option value="2021-22">2021-22</option>
+                                  <option value="2022-23">2022-23</option>
+                                  <option value="2023-24">2023-24</option>
+                                </select>
+                              </>
+                            )}
                         </div>
                       </div>
 
@@ -423,7 +460,10 @@ const Registration = () => {
 
                       <div className="mb-1 d-flex flex-row">
                         <div className="col-md-4 col-sm-4 ">
-                          <label className="form-label fw-bold" htmlFor="uconpwd">
+                          <label
+                            className="form-label fw-bold"
+                            htmlFor="uconpwd"
+                          >
                             Confirm Password:
                           </label>
                         </div>
@@ -458,9 +498,8 @@ const Registration = () => {
                         {signup ? (
                           <>
                             <button
+                              type="button"
                               onClick={sendOtp}
-                              data-mdb-button-init
-                              data-mdb-ripple-init
                               className="btn btn-primary btn-block btn-lg gradient-custom-4"
                             >
                               Verify Email
@@ -471,7 +510,6 @@ const Registration = () => {
                             <button
                               disabled={!isValid}
                               type="submit"
-                              // onClick={handleSignup}
                               data-mdb-button-init
                               data-mdb-ripple-init
                               className="btn btn-success btn-block btn-lg gradient-custom-4"
@@ -484,17 +522,19 @@ const Registration = () => {
                     </form>
 
                     <form onSubmit={otpHandleSubmit(onOtpSubmit)}>
-                      {emailbtn && (
+                      {showOtp && (
                         <div className="p-2 mb-2 mt-2 d-flex flex-column border border-dark">
-                          <p>We have sent an OTP to your email address.</p>
+                          <p className="text-center">
+                            We have sent an OTP to your email address.
+                          </p>
                           <div className="d-flex flex-column align-items-center justify-content-center">
                             {onOtp ? (
-                              <div className="fw-bold text-success">
-                                Verified. Now Log in.
+                              <div className="p-2 mb-2 mt-2 fs-5 fw-bold text-success">
+                                Verified. Please wait...
                               </div>
                             ) : (
                               <>
-                                <div className="ml-1 col-md-3 col-sm-3">
+                                <div className="text-center ml-1 col-md-12 col-sm-12">
                                   <label
                                     className="form-label fw-bold"
                                     htmlFor="otp"
@@ -502,53 +542,45 @@ const Registration = () => {
                                     Enter OTP
                                   </label>
                                 </div>
-                                <div className="col-md-5 col-sm-5">
+                                <div className="col-md-4 col-sm-4">
                                   <input
                                     type="text"
                                     id="otp"
                                     {...otpRegister("otp")}
-                                    onChange={(event) =>
-                                      setOtpData({
-                                        ...otpdata,
-                                        otp: event.target.value.replace(
-                                          /\D/g,
-                                          ""
-                                        ),
-                                      })
-                                    }
-                                    value={otpdata.otp}
                                     className={
                                       otpErrors.otp
-                                        ? "form-control form-control-md border border-danger"
-                                        : "form-control form-control-md border border-dark"
+                                        ? "text-center form-control form-control-md border border-danger"
+                                        : "text-center form-control form-control-md border border-dark"
                                     }
-                                    placeholder="Enter 6 digit OTP"
+                                    placeholder="Enter OTP"
                                   />
-                                  {/* {otpErrors.otp && (
+                                </div>
+                                <div>
+                                  {otpErrors.otp && (
                                     <small className="text-danger">
                                       {otpErrors.otp.message}
                                     </small>
-                                  )} */}
-                                  {
+                                  )}
+                                  {message && (
                                     <small className="text-danger">
                                       {message}
                                     </small>
-                                  }
-                                </div>
-
-                                <div className="d-flex justify-content-center">
-                                  <button
-                                    type="submit"
-                                    onClick={verifyEmail}
-                                    data-mdb-button-init
-                                    data-mdb-ripple-init
-                                    className="btn btn-success mt-2 btn-block btn-md gradient-custom-4"
-                                  >
-                                    Verify
-                                  </button>
+                                  )}
                                 </div>
                               </>
                             )}
+                          </div>
+                          <div className="d-flex justify-content-center">
+                            <button
+                              disabled={!isOtpValid}
+                              // onClick={verifyOtp}
+                              type="submit"
+                              data-mdb-button-init
+                              data-mdb-ripple-init
+                              className="btn btn-primary mt-2 col-sm-4 btn-block btn-md gradient-custom-4"
+                            >
+                              Verify
+                            </button>
                           </div>
                         </div>
                       )}
@@ -558,7 +590,7 @@ const Registration = () => {
                       Already have an account?{" "}
                       <button>
                         <Link
-                          to="/Login"
+                          to="/login"
                           className=" btn btn-dark fw-bold text-decoration-none text-white w-auto"
                         >
                           Login here
